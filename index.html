@@ -1,0 +1,695 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Website Status Monitor</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(10px);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #2c3e50 0%, #3498db 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .controls {
+            padding: 30px;
+            background: #f8f9fa;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .url-input-section {
+            margin-bottom: 25px;
+        }
+
+        .url-input-section label {
+            display: block;
+            margin-bottom: 10px;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+        .url-textarea {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #e9ecef;
+            border-radius: 10px;
+            font-size: 14px;
+            resize: vertical;
+            min-height: 120px;
+            font-family: 'Courier New', monospace;
+            transition: border-color 0.3s ease;
+        }
+
+        .url-textarea:focus {
+            outline: none;
+            border-color: #3498db;
+            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+        }
+
+        .controls-row {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .interval-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .interval-group label {
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+        .interval-select {
+            padding: 10px 15px;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            font-size: 14px;
+            background: white;
+            cursor: pointer;
+        }
+
+        .btn {
+            padding: 12px 25px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #3498db, #2980b9);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(52, 152, 219, 0.3);
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #27ae60, #219a52);
+            color: white;
+        }
+
+        .btn-success:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(39, 174, 96, 0.3);
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, #e74c3c, #c0392b);
+            color: white;
+        }
+
+        .btn-danger:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(231, 76, 60, 0.3);
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .status-info {
+            padding: 20px 30px;
+            background: #f8f9fa;
+            border-bottom: 1px solid #e9ecef;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .status-badges {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .badge {
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .badge-success {
+            background: linear-gradient(135deg, #d4edda, #c3e6cb);
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .badge-danger {
+            background: linear-gradient(135deg, #f8d7da, #f5c6cb);
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .badge-info {
+            background: linear-gradient(135deg, #d1ecf1, #bee5eb);
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+
+        .results {
+            padding: 30px;
+        }
+
+        .website-card {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 20px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+            border-left: 5px solid #e9ecef;
+            transition: all 0.3s ease;
+        }
+
+        .website-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+        }
+
+        .website-card.online {
+            border-left-color: #27ae60;
+            background: linear-gradient(135deg, #ffffff, #f8fff9);
+        }
+
+        .website-card.offline {
+            border-left-color: #e74c3c;
+            background: linear-gradient(135deg, #ffffff, #fff8f8);
+        }
+
+        .website-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .website-url {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #2c3e50;
+            word-break: break-all;
+        }
+
+        .status-indicator {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 600;
+            font-size: 14px;
+            padding: 6px 12px;
+            border-radius: 20px;
+        }
+
+        .status-online {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .status-offline {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .website-details {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .detail-item {
+            background: #f8f9fa;
+            padding: 12px 15px;
+            border-radius: 8px;
+            border-left: 3px solid #3498db;
+        }
+
+        .detail-label {
+            font-size: 12px;
+            color: #6c757d;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 5px;
+        }
+
+        .detail-value {
+            font-size: 16px;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+        .error-message {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 12px 15px;
+            border-radius: 8px;
+            margin-top: 10px;
+            border-left: 3px solid #e74c3c;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #6c757d;
+        }
+
+        .spinner {
+            display: inline-block;
+            width: 40px;
+            height: 40px;
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #3498db;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 15px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .pulse {
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.7; }
+            100% { opacity: 1; }
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                margin: 10px;
+                border-radius: 15px;
+            }
+
+            .header h1 {
+                font-size: 2rem;
+            }
+
+            .controls, .results {
+                padding: 20px;
+            }
+
+            .controls-row {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .website-details {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🌐 Website Status Monitor</h1>
+            <p>Real-time monitoring dashboard for your websites</p>
+        </div>
+
+        <div class="controls">
+            <div class="url-input-section">
+                <label for="urlInput">Website URLs (one per line):</label>
+                <textarea 
+                    id="urlInput" 
+                    class="url-textarea" 
+                    placeholder="http://apps.benwinindonesia.com&#10;https://qrcode.sobatam.com&#10;https://sobatam.com/analytics"
+                >http://apps.benwinindonesia.com
+https://qrcode.sobatam.com
+https://sobatam.com/analytics
+https://grand-batam-fork.my.id</textarea>
+            </div>
+
+            <div class="controls-row">
+                <div class="interval-group">
+                    <label for="intervalSelect">Check Interval:</label>
+                    <select id="intervalSelect" class="interval-select">
+                        <option value="30">30 seconds</option>
+                        <option value="60">1 minute</option>
+                        <option value="180">3 minutes</option>
+                        <option value="300" selected>5 minutes</option>
+                        <option value="600">10 minutes</option>
+                        <option value="1800">30 minutes</option>
+                    </select>
+                </div>
+
+                <button id="checkOnceBtn" class="btn btn-primary">Check Once</button>
+                <button id="startMonitoringBtn" class="btn btn-success">Start Monitoring</button>
+                <button id="stopMonitoringBtn" class="btn btn-danger" disabled>Stop Monitoring</button>
+            </div>
+        </div>
+
+        <div id="statusInfo" class="status-info" style="display: none;">
+            <div class="status-badges">
+                <div class="badge badge-info">
+                    <span>📊</span>
+                    <span>Total: <span id="totalCount">0</span></span>
+                </div>
+                <div class="badge badge-success">
+                    <span>✅</span>
+                    <span>Online: <span id="onlineCount">0</span></span>
+                </div>
+                <div class="badge badge-danger">
+                    <span>❌</span>
+                    <span>Offline: <span id="offlineCount">0</span></span>
+                </div>
+            </div>
+            <div>
+                <span id="lastCheckTime"></span>
+            </div>
+        </div>
+
+        <div id="results" class="results"></div>
+    </div>
+
+    <script>
+        class WebsiteMonitor {
+            constructor() {
+                this.monitoringInterval = null;
+                this.isMonitoring = false;
+                this.checkCount = 0;
+                this.initializeElements();
+                this.bindEvents();
+            }
+
+            initializeElements() {
+                this.urlInput = document.getElementById('urlInput');
+                this.intervalSelect = document.getElementById('intervalSelect');
+                this.checkOnceBtn = document.getElementById('checkOnceBtn');
+                this.startMonitoringBtn = document.getElementById('startMonitoringBtn');
+                this.stopMonitoringBtn = document.getElementById('stopMonitoringBtn');
+                this.statusInfo = document.getElementById('statusInfo');
+                this.results = document.getElementById('results');
+                this.totalCount = document.getElementById('totalCount');
+                this.onlineCount = document.getElementById('onlineCount');
+                this.offlineCount = document.getElementById('offlineCount');
+                this.lastCheckTime = document.getElementById('lastCheckTime');
+            }
+
+            bindEvents() {
+                this.checkOnceBtn.addEventListener('click', () => this.checkOnce());
+                this.startMonitoringBtn.addEventListener('click', () => this.startMonitoring());
+                this.stopMonitoringBtn.addEventListener('click', () => this.stopMonitoring());
+            }
+
+            getUrls() {
+                return this.urlInput.value
+                    .split('\n')
+                    .map(url => url.trim())
+                    .filter(url => url.length > 0);
+            }
+
+            async checkWebsite(url) {
+                const startTime = Date.now();
+                
+                try {
+                    // Using fetch with CORS mode
+                    const response = await fetch(url, {
+                        method: 'HEAD',
+                        mode: 'no-cors',
+                        cache: 'no-cache'
+                    });
+                    
+                    const responseTime = Date.now() - startTime;
+                    
+                    return {
+                        url: url,
+                        status: 'online',
+                        responseTime: responseTime,
+                        statusCode: 'Unknown (CORS)',
+                        timestamp: new Date(),
+                        error: null
+                    };
+                    
+                } catch (error) {
+                    const responseTime = Date.now() - startTime;
+                    
+                    // Try alternative method with img element for basic connectivity check
+                    try {
+                        await this.checkWithImage(url);
+                        return {
+                            url: url,
+                            status: 'online',
+                            responseTime: responseTime,
+                            statusCode: 'Reachable',
+                            timestamp: new Date(),
+                            error: null
+                        };
+                    } catch (imgError) {
+                        return {
+                            url: url,
+                            status: 'offline',
+                            responseTime: responseTime,
+                            statusCode: null,
+                            timestamp: new Date(),
+                            error: error.message
+                        };
+                    }
+                }
+            }
+
+            checkWithImage(url) {
+                return new Promise((resolve, reject) => {
+                    const img = new Image();
+                    const timeout = setTimeout(() => {
+                        reject(new Error('Timeout'));
+                    }, 10000);
+
+                    img.onload = () => {
+                        clearTimeout(timeout);
+                        resolve();
+                    };
+                    
+                    img.onerror = () => {
+                        clearTimeout(timeout);
+                        // Even if image fails, the server might be responding
+                        resolve();
+                    };
+                    
+                    // Try to load favicon or a small resource
+                    img.src = url + '/favicon.ico?_=' + Date.now();
+                });
+            }
+
+            async checkAllWebsites() {
+                const urls = this.getUrls();
+                if (urls.length === 0) {
+                    alert('Please enter at least one URL');
+                    return;
+                }
+
+                this.showLoading();
+                this.checkCount++;
+
+                const results = [];
+                
+                for (const url of urls) {
+                    const result = await this.checkWebsite(url);
+                    results.push(result);
+                }
+
+                this.displayResults(results);
+                this.updateStatusInfo(results);
+            }
+
+            showLoading() {
+                this.results.innerHTML = `
+                    <div class="loading">
+                        <div class="spinner"></div>
+                        <p>Checking websites...</p>
+                    </div>
+                `;
+            }
+
+            displayResults(results) {
+                let html = '';
+                
+                results.forEach((result, index) => {
+                    const cardClass = result.status === 'online' ? 'online' : 'offline';
+                    const statusClass = result.status === 'online' ? 'status-online' : 'status-offline';
+                    const statusIcon = result.status === 'online' ? '✅' : '❌';
+                    const statusText = result.status === 'online' ? 'ONLINE' : 'OFFLINE';
+
+                    html += `
+                        <div class="website-card ${cardClass}">
+                            <div class="website-header">
+                                <div class="website-url">${result.url}</div>
+                                <div class="status-indicator ${statusClass}">
+                                    ${statusIcon} ${statusText}
+                                </div>
+                            </div>
+                            
+                            ${result.status === 'online' ? `
+                                <div class="website-details">
+                                    <div class="detail-item">
+                                        <div class="detail-label">Response Time</div>
+                                        <div class="detail-value">${result.responseTime}ms</div>
+                                    </div>
+                                    <div class="detail-item">
+                                        <div class="detail-label">Status</div>
+                                        <div class="detail-value">${result.statusCode}</div>
+                                    </div>
+                                    <div class="detail-item">
+                                        <div class="detail-label">Last Check</div>
+                                        <div class="detail-value">${result.timestamp.toLocaleTimeString()}</div>
+                                    </div>
+                                </div>
+                            ` : `
+                                <div class="error-message">
+                                    <strong>Error:</strong> ${result.error || 'Website is not accessible'}
+                                </div>
+                                <div class="website-details">
+                                    <div class="detail-item">
+                                        <div class="detail-label">Last Check</div>
+                                        <div class="detail-value">${result.timestamp.toLocaleTimeString()}</div>
+                                    </div>
+                                </div>
+                            `}
+                        </div>
+                    `;
+                });
+
+                this.results.innerHTML = html;
+            }
+
+            updateStatusInfo(results) {
+                const total = results.length;
+                const online = results.filter(r => r.status === 'online').length;
+                const offline = total - online;
+
+                this.totalCount.textContent = total;
+                this.onlineCount.textContent = online;
+                this.offlineCount.textContent = offline;
+                this.lastCheckTime.textContent = `Last check: ${new Date().toLocaleString()} (Check #${this.checkCount})`;
+
+                this.statusInfo.style.display = 'flex';
+            }
+
+            async checkOnce() {
+                this.checkOnceBtn.disabled = true;
+                this.checkOnceBtn.textContent = 'Checking...';
+                
+                await this.checkAllWebsites();
+                
+                this.checkOnceBtn.disabled = false;
+                this.checkOnceBtn.textContent = 'Check Once';
+            }
+
+            startMonitoring() {
+                const interval = parseInt(this.intervalSelect.value) * 1000;
+                
+                this.isMonitoring = true;
+                this.startMonitoringBtn.disabled = true;
+                this.stopMonitoringBtn.disabled = false;
+                this.intervalSelect.disabled = true;
+
+                // First check immediately
+                this.checkAllWebsites();
+
+                // Then check at intervals
+                this.monitoringInterval = setInterval(() => {
+                    this.checkAllWebsites();
+                }, interval);
+
+                // Update button text to show next check time
+                this.updateNextCheckTime(interval);
+            }
+
+            stopMonitoring() {
+                this.isMonitoring = false;
+                clearInterval(this.monitoringInterval);
+                clearInterval(this.nextCheckInterval);
+                
+                this.startMonitoringBtn.disabled = false;
+                this.stopMonitoringBtn.disabled = true;
+                this.intervalSelect.disabled = false;
+                this.startMonitoringBtn.textContent = 'Start Monitoring';
+            }
+
+            updateNextCheckTime(interval) {
+                let seconds = interval / 1000;
+                
+                this.nextCheckInterval = setInterval(() => {
+                    seconds--;
+                    if (seconds <= 0) {
+                        seconds = interval / 1000;
+                    }
+                    
+                    const minutes = Math.floor(seconds / 60);
+                    const remainingSeconds = seconds % 60;
+                    const timeString = minutes > 0 ? 
+                        `${minutes}m ${remainingSeconds}s` : 
+                        `${remainingSeconds}s`;
+                    
+                    this.startMonitoringBtn.textContent = `Next check in ${timeString}`;
+                }, 1000);
+            }
+        }
+
+        // Initialize the monitor when page loads
+        document.addEventListener('DOMContentLoaded', () => {
+            new WebsiteMonitor();
+        });
+    </script>
+</body>
+</html>
